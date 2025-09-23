@@ -116,19 +116,17 @@ const dataQueryFromPromptFlow = ai.defineFlow(
       };
     }
 
-    const response = await prompt(input);
+    const {output} = await prompt(input);
 
-    const toolCalls = response.toolCalls();
-
-    if (toolCalls.length > 0) {
-      const toolCall = toolCalls[0];
+    if (output.toolRequests.length > 0) {
+      const toolRequest = output.toolRequests[0];
        // If the LLM wants to use a tool, execute it.
-       if (toolCall?.name === 'scanEncryptedResources') {
-          const toolOutput = await scanEncryptedResourcesTool(toolCall.input);
+       if (toolRequest?.tool === 'scanEncryptedResources') {
+          const toolOutput = await scanEncryptedResourcesTool(toolRequest.input);
           
           // Now, generate a final response *including* the tool's output.
           const finalResponse = await ai.generate({
-            prompt: `You have just performed the action '${toolCall.input.action}' and the result was: '${toolOutput}'. Please provide a brief, natural language confirmation to the user that the action was completed.`,
+            prompt: `You have just performed the action '${toolRequest.input.action}' and the result was: '${toolOutput}'. Please provide a brief, natural language confirmation to the user that the action was completed.`,
             model: 'googleai/gemini-pro',
           });
 
@@ -140,7 +138,7 @@ const dataQueryFromPromptFlow = ai.defineFlow(
 
     // Otherwise, return the standard text response.
     return {
-        relevantData: response.text,
+        relevantData: output.text,
     };
   }
 );
