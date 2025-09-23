@@ -4,7 +4,7 @@
  * @fileOverview A data query AI agent that allows users to ask questions about their data using natural language.
  *
  * - dataQueryFromPrompt - A function that handles the data query process.
- * - DataQueryFromPromptInput - The input type for the dataQueryFromPrompt function.
+ * - DataQueryFromPromptInput - The input type for the dataQueryFromprompt function.
  * - DataQueryFromPromptOutput - The return type for the dataQueryFromPrompt function.
  */
 
@@ -65,14 +65,10 @@ const prompt = ai.definePrompt({
 
   4.  **Help Command:** If the user enters "mydatagpt help", you MUST respond with the following list of commands and nothing else. Do not use any tools.
       mydatagpt commands:
-      --create new contact "newcontact"
-      --create new photo album "nameofalbum"
-      --create new email:password "emailaddress:password"
-      --create new record "nameof record"
-      --show all media
-      --show all contacts
-      --show "contactname"
-      --show storage amount
+      --add
+      --edit
+      --delete
+      --show
 
   User Query: {{{query}}}
 `, 
@@ -85,17 +81,13 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     outputSchema: DataQueryFromPromptOutputSchema,
   },
   async input => {
-    if (input.query.trim() === 'mydatagpt help') {
+    if (input.query.trim().toLowerCase() === 'mydatagpt help') {
       return {
         relevantData: `mydatagpt commands:
-      --create new contact "newcontact"
-      --create new photo album "nameofalbum"
-      --create new email:password "emailaddress:password"
-      --create new record "nameof record"
-      --show all media
-      --show all contacts
-      --show "contactname"
-      --show storage amount`,
+      --add
+      --edit
+      --delete
+      --show`,
       };
     }
 
