@@ -1,7 +1,8 @@
 'use server';
 
 /**
- * @fileOverview A data query AI agent that allows users to ask questions about their data using natural language.
+ * @fileOverview A dual-purpose AI agent that functions as a standard chatbot
+ * and a secure, simulated terminal for private data management.
  *
  * - dataQueryFromPrompt - A function that handles the data query process.
  * - DataQueryFromPromptInput - The input type for the dataQueryFromprompt function.
@@ -12,7 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const DataQueryFromPromptInputSchema = z.object({
-  query: z.string().describe('The natural language query from the user.'),
+  query: z.string().describe('The natural language query or terminal command from the user.'),
   history: z
     .array(
       z.object({
@@ -21,7 +22,7 @@ const DataQueryFromPromptInputSchema = z.object({
       })
     )
     .optional()
-    .describe('The conversation history.'),
+    .describe('The conversation history, which represents the state of the simulated terminal.'),
 });
 export type DataQueryFromPromptInput = z.infer<typeof DataQueryFromPromptInputSchema>;
 
@@ -36,75 +37,87 @@ export async function dataQueryFromPrompt(input: DataQueryFromPromptInput): Prom
   return dataQueryFromPromptFlow(input);
 }
 
-const scanEncryptedResourcesTool = ai.defineTool({
-  name: 'scanEncryptedResources',
-  description: 'This tool can scan, add, edit, or delete data from the user\'s encrypted resources. This is the ONLY tool that can interact with the user\'s private data.',
+const terminalTool = ai.defineTool({
+  name: 'terminalTool',
+  description: 'A tool that simulates a Linux terminal. It can manage a virtual file system including creating, reading, and deleting files and directories. This is the ONLY tool that can interact with the user\'s private virtual file system.',
   inputSchema: z.object({
-    action: z.enum(['add', 'edit', 'delete', 'show']).describe('The action to perform.'),
-    dataType: z.string().optional().describe('The type of data (e.g., contact, photo album, note).'),
-    query: z.string().describe('The specific query or data for the action.'),
+    command: z.string().describe('The full command to execute, e.g., "ls -l /documents".'),
   }),
-  outputSchema: z.string().describe('The result of the operation, or a confirmation message.'),
+  outputSchema: z.string().describe('The simulated output of the command, as it would appear in a real terminal.'),
 }, async (input) => {
-  // In a real application, this is where you would decrypt and search/modify the resources.
-  console.log(`Performing action '${input.action}' on resources.`);
-  return `Simulating successful '${input.action}' action for query: "${input.query}". The user's private data has been accessed.`;
+  // In a real application, this would interact with a secure, encrypted virtual file system.
+  // For now, we'll simulate the output.
+  console.log(`Executing terminal command: ${input.command}`);
+  
+  const [commandName, ...args] = input.command.split(' ');
+
+  if (commandName === 'ls') {
+    return 'Simulating ls: \n-rw-r--r-- 1 user user 1024 Jan 1 12:00 my_secrets.txt\ndrwxr-xr-x 2 user user 4096 Jan 1 12:00 photos';
+  }
+  if (commandName === 'cat') {
+      if (args[0]) {
+        return `Simulating 'cat ${args[0]}': This is the content of your secret file.`;
+      }
+      return 'Usage: cat <filename>';
+  }
+  if (commandName === 'mkdir' || commandName === 'touch') {
+    return ``; // Successful creation commands have no output
+  }
+  if (commandName === 'rm' || commandName === 'rmdir') {
+    return ``; // Successful deletion commands have no output
+  }
+  if (commandName === 'pwd') {
+      return '/home/user';
+  }
+   if (commandName === 'whoami') {
+      return 'user';
+  }
+    if (commandName === 'date') {
+      return new Date().toString();
+  }
+
+  return `Simulated execution of '${input.command}'.`;
 });
 
 const prompt = ai.definePrompt({
   name: 'dataQueryFromPromptPrompt',
   input: {schema: DataQueryFromPromptInputSchema},
   output: {schema: DataQueryFromPromptOutputSchema},
-  tools: [scanEncryptedResourcesTool],
+  tools: [terminalTool],
   prompt: `You are a dual-purpose AI assistant with a strict security protocol.
 
-  **Public Mode (Default Behavior):**
-  - For any general question (e.g., "What's the capital of France?", "Write a poem"), you MUST respond as a standard, helpful AI assistant like ChatGPT.
-  - In Public Mode, you MUST NOT use any tools or acknowledge the existence of a secure vault. Your responses should be generic and helpful.
+**Public Mode (Default Behavior):**
+- You are a helpful, harmless AI assistant like ChatGPT.
+- For any general question that is NOT a recognized terminal command (e.g., "What's the capital of France?", "Write a poem"), you MUST respond as a standard AI assistant.
+- In Public Mode, you MUST NOT use any tools or acknowledge the existence of a secure terminal or file system. Your responses should be generic and helpful.
 
-  **Private Mode (Secure Data Management):**
-  - Private Mode is activated ONLY by the user query "mydatagpt".
-  - If the user query is EXACTLY "mydatagpt", you must respond with the command list and await the user's next input. Your response must be:
-    "mydatagpt commands:
-    --add
-    --edit
-    --delete
-    --show"
-  - After showing the commands, your NEXT response MUST be guided by the user's choice of command (--add, --edit, --delete, --show). You will now act as an interactive guide for that task.
+**Private Mode (Simulated Terminal):**
+- Private Mode is activated when the user's query looks like a standard Linux/Unix terminal command.
+- Recognized commands include: \`ls\`, \`cd\`, \`pwd\`, \`mkdir\`, \`rmdir\`, \`touch\`, \`cp\`, \`mv\`, \`rm\`, \`cat\`, \`less\`, \`head\`, \`tail\`, \`whoami\`, \`date\`, \`clear\`, \`exit\`.
+- When you recognize a terminal command, you MUST use the \`terminalTool\` to execute it.
+- You must maintain the state of the virtual file system (current directory, file structure) based on the history of commands.
+- The output should look exactly like it would in a real terminal. Do not add conversational text unless the command is invalid or an error occurs.
+- If the command is \`clear\`, you must output the single word "CLEAR_SCREEN".
+- If the command is \`exit\`, you must output the single word "EXIT_SESSION".
 
-  **Private Mode: Guided Interaction Rules:**
-  1.  **Be Interactive:** Guide the user. If they say "--add", ask them WHAT they want to add.
-  2.  **Data Types:** You understand the following data structures:
-      - **contacts**: name, phone number, address, email.
-      - **documents**: title, content.
-      - **images/videos**: title, album name.
-      - **accounts** or **email:password**: service/website, username/email, password.
-      - **notes**: title, content.
-      - **reminders**: content, due date/time.
-  3.  **Prompt for Details:** For each data type, you MUST ask for the necessary fields. For example, if adding a contact, ask for the name, then phone, then address, etc.
-  4.  **Use Tools for Data:** ALL actions involving user data (adding, showing, etc.) MUST use the 'scanEncryptedResources' tool. Formulate the tool input based on the user's guided responses.
-  5.  **Confirmation:** After a tool action, confirm with the user. For example: "I've added 'John Doe' to your contacts."
+**Conversation History (Represents Terminal State):**
+{{#if history}}
+{{#each history}}
+- {{sender}}: {{text}}
+{{/each}}
+{{/if}}
 
-  **Conversation History:**
-  {{#if history}}
-  {{#each history}}
-  - {{sender}}: {{text}}
-  {{/each}}
-  {{/if}}
+**Example Flow (Private Mode):**
+- User: "ls -a"
+- You: (Call terminalTool({ command: 'ls -a' })) -> Output the result from the tool.
+- User: "mkdir my_new_folder"
+- You: (Call terminalTool({ command: 'mkdir my_new_folder' })) -> Return no output, just wait for next prompt.
+- User: "ls"
+- You: (Call terminalTool({ command: 'ls' })) -> Output should now include 'my_new_folder'.
 
-  **Example Flow (Private Mode):**
-  - User: "mydatagpt"
-  - You: "mydatagpt commands:\n--add\n--edit\n--delete\n--show"
-  - User: "--add"
-  - You: "What would you like to add? You can add contacts, documents, notes, etc."
-  - User: "a new contact"
-  - You: "Got it. What is the contact's name?"
-  - User: "John Doe"
-  - You: "What is John Doe's phone number?"
-  - User: "555-1234"
-  - You: (Continue asking for address, email... then call the tool) -> Use scanEncryptedResourcesTool({ action: 'add', dataType: 'contact', query: 'name: John Doe, phone: 555-1234, ...' })
+**IMPORTANT:** If you are not confident that the user input is a terminal command, you MUST default to Public Mode. Only act as a terminal if the command is unambiguous.
 
-  User Query: {{{query}}}
+User Query: {{{query}}}
 `,
 });
 
@@ -114,50 +127,30 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     inputSchema: DataQueryFromPromptInputSchema,
     outputSchema: DataQueryFromPromptOutputSchema,
   },
-  async input => {
-    // This special handling for 'mydatagpt' is still needed to kickstart the Private Mode flow.
-    if (input.query.trim().toLowerCase() === 'mydatagpt') {
-      return {
-        relevantData: `mydatagpt commands:
---add
---edit
---delete
---show`,
-      };
+  async (input: DataQueryFromPromptInput) => {
+    
+    if (input.query.trim().toLowerCase() === 'clear') {
+        return { relevantData: 'CLEAR_SCREEN' };
     }
 
     const llmResponse = await ai.generate({
         prompt: prompt.compile({input}),
         model: 'googleai/gemini-pro',
-        tools: [scanEncryptedResourcesTool]
+        tools: [terminalTool]
     });
 
     const output = llmResponse.output();
-    if (!output) {
-      if(llmResponse.text) {
-        return { relevantData: llmResponse.text };
-      }
-      throw new Error('No output from LLM.');
-    }
 
-    if (output.toolRequests && output.toolRequests.length > 0) {
-      const toolRequest = output.toolRequests[0];
-       if (toolRequest?.tool === 'scanEncryptedResources') {
-          const toolOutput = await scanEncryptedResourcesTool(toolRequest.input);
-          
-          const finalResponse = await ai.generate({
-            prompt: `You have just performed the action '${toolRequest.input.action}' and the result was: '${toolOutput}'. Please provide a brief, natural language confirmation to the user that the action was completed.`,
-            model: 'googleai/gemini-pro',
-          });
-
-          return {
-              relevantData: finalResponse.text,
-          };
+    if (llmResponse.hasToolRequests) {
+      const toolRequest = llmResponse.toolRequests[0];
+       if (toolRequest?.tool === 'terminalTool') {
+          const toolOutput = await terminalTool(toolRequest.input);
+          return { relevantData: toolOutput };
        }
     }
     
     return {
-        relevantData: output.text,
+        relevantData: llmResponse.text,
     };
   }
 );

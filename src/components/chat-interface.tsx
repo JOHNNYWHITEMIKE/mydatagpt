@@ -43,7 +43,13 @@ export function ChatInterface() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { id: Date.now(), sender: 'user', text: input };
-    const currentMessages = [...messages, userMessage];
+    let currentMessages = [...messages, userMessage];
+
+    if (input.trim().toLowerCase() === 'clear') {
+        setMessages([]);
+        setInput('');
+        return;
+    }
 
     setMessages(prev => [...prev, userMessage, { id: Date.now() + 1, sender: 'bot', text: '', isTyping: true }]);
     setInput('');
@@ -60,13 +66,17 @@ export function ChatInterface() {
         history: historyForAI,
       });
 
-      const botMessage: Message = {
-        id: Date.now() + 2,
-        sender: 'bot',
-        text: result.relevantData,
-      };
+      if (result.relevantData === 'CLEAR_SCREEN') {
+        setMessages([]);
+      } else {
+        const botMessage: Message = {
+          id: Date.now() + 2,
+          sender: 'bot',
+          text: result.relevantData,
+        };
+        setMessages(prev => prev.filter(m => !m.isTyping).concat(botMessage));
+      }
 
-      setMessages(prev => prev.filter(m => !m.isTyping).concat(botMessage));
     } catch (error) {
       console.error(error);
       const errorMessage: Message = {
@@ -83,7 +93,7 @@ export function ChatInterface() {
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSubmit(e as any);
     }
   };
 
@@ -92,14 +102,14 @@ export function ChatInterface() {
       <div className="flex-1 flex flex-col items-center">
         <ScrollArea className="flex-1 w-full" viewportRef={viewportRef}>
           <div className="max-w-3xl mx-auto px-4">
-            {messages.length === 1 && (
+            {messages.length === 0 || (messages.length === 1 && messages[0].id === 0) ? (
               <div className="flex flex-col items-center text-center pt-20 pb-12">
                   <h1 className="text-4xl font-bold text-foreground">ChatGPT</h1>
               </div>
-            )}
+            ) : null}
             <div className="flex flex-col gap-4 py-6">
               {messages.map(msg => (
-                <ChatMessage key={msg.id} message={msg} />
+                msg.id !== 0 && <ChatMessage key={msg.id} message={msg} />
               ))}
             </div>
           </div>
