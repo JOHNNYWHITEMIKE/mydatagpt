@@ -85,6 +85,20 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     outputSchema: DataQueryFromPromptOutputSchema,
   },
   async input => {
+    if (input.query.trim() === 'mydatagpt help') {
+      return {
+        relevantData: `mydatagpt commands:
+      --create new contact "newcontact"
+      --create new photo album "nameofalbum"
+      --create new email:password "emailaddress:password"
+      --create new record "nameof record"
+      --show all media
+      --show all contacts
+      --show "contactname"
+      --show storage amount`,
+      };
+    }
+
     const response = await prompt(input);
     const toolCall = response.toolCalls?.[0];
 
