@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChatInterface } from '@/components/chat-interface';
-import { BackupPrompt } from '@/components/backup-prompt';
 
 export default function Home() {
   const router = useRouter();
@@ -29,9 +28,6 @@ export default function Home() {
   }
 
   return (
-    <>
-      <ChatInterface />
-      <BackupPrompt />
-    </>
+    <ChatInterface />
   );
 }
