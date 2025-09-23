@@ -30,6 +30,7 @@ export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMessages([
@@ -38,9 +39,9 @@ export function ChatInterface() {
   }, []);
   
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({
+        top: viewportRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
@@ -91,7 +92,7 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="flex-1 flex flex-col items-center">
-        <ScrollArea className="flex-1 w-full" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1 w-full" viewportRef={viewportRef}>
           <div className="max-w-3xl mx-auto px-4">
             {messages.length === 1 && (
               <div className="flex flex-col items-center text-center pt-20 pb-12">

@@ -109,10 +109,10 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     if (input.query.trim().toLowerCase() === 'mydatagpt') {
       return {
         relevantData: `mydatagpt commands:
-      --add
-      --edit
-      --delete
-      --show`,
+--add
+--edit
+--delete
+--show`,
       };
     }
 
@@ -128,23 +128,19 @@ const dataQueryFromPromptFlow = ai.defineFlow(
           
           // Now, generate a final response *including* the tool's output.
           const finalResponse = await ai.generate({
-            prompt: [
-              response.request.messages,
-              response.message,
-              {toolResult: {name: 'scanEncryptedResources', result: toolOutput}}
-            ],
-            model: 'googleai/gemini-2.5-flash',
+            prompt: `You have just performed the action '${toolCall.input.action}' and the result was: '${toolOutput}'. Please provide a brief, natural language confirmation to the user that the action was completed.`,
+            model: 'googleai/gemini-pro',
           });
 
           return {
-              relevantData: finalResponse.text ?? 'Action completed.',
+              relevantData: finalResponse.text,
           };
        }
     }
 
     // Otherwise, return the standard text response.
     return {
-        relevantData: response.text ?? 'I am not sure how to answer that.',
+        relevantData: response.text,
     };
   }
 );
