@@ -38,7 +38,7 @@ export async function dataQueryFromPrompt(input: DataQueryFromPromptInput): Prom
 
 const scanEncryptedResourcesTool = ai.defineTool({
   name: 'scanEncryptedResources',
-  description: 'After a security check, this tool can scan, add, edit, or delete data from the user\'s encrypted resources. This is the ONLY tool that can interact with the user\'s private data.',
+  description: 'This tool can scan, add, edit, or delete data from the user\'s encrypted resources. This is the ONLY tool that can interact with the user\'s private data.',
   inputSchema: z.object({
     action: z.enum(['add', 'edit', 'delete', 'show']).describe('The action to perform.'),
     dataType: z.string().optional().describe('The type of data (e.g., contact, photo album, note).'),
@@ -46,10 +46,8 @@ const scanEncryptedResourcesTool = ai.defineTool({
   }),
   outputSchema: z.string().describe('The result of the operation, or a confirmation message.'),
 }, async (input) => {
-  // In a real application, this is where you would trigger a biometric check.
-  // For example: `const authenticated = await biometricCheck();`
-  // If authenticated, you would proceed to decrypt and search/modify the resources.
-  console.log(`[Security Check Passed] Performing action '${input.action}' on resources.`);
+  // In a real application, this is where you would decrypt and search/modify the resources.
+  console.log(`Performing action '${input.action}' on resources.`);
   return `Simulating successful '${input.action}' action for query: "${input.query}". The user's private data has been accessed.`;
 });
 
@@ -75,18 +73,17 @@ const prompt = ai.definePrompt({
   - After showing the commands, your NEXT response MUST be guided by the user's choice of command (--add, --edit, --delete, --show). You will now act as an interactive guide for that task.
 
   **Private Mode: Guided Interaction Rules:**
-  1.  **Security First:** Before performing any data action, you must state that a security check is being performed.
-  2.  **Be Interactive:** Guide the user. If they say "--add", ask them WHAT they want to add.
-  3.  **Data Types:** You understand the following data structures:
+  1.  **Be Interactive:** Guide the user. If they say "--add", ask them WHAT they want to add.
+  2.  **Data Types:** You understand the following data structures:
       - **contacts**: name, phone number, address, email.
       - **documents**: title, content.
       - **images/videos**: title, album name.
       - **accounts** or **email:password**: service/website, username/email, password.
       - **notes**: title, content.
       - **reminders**: content, due date/time.
-  4.  **Prompt for Details:** For each data type, you MUST ask for the necessary fields. For example, if adding a contact, ask for the name, then phone, then address, etc.
-  5.  **Use Tools for Data:** ALL actions involving user data (adding, showing, etc.) MUST use the 'scanEncryptedResources' tool. Formulate the tool input based on the user's guided responses.
-  6.  **Confirmation:** After a tool action, confirm with the user. For example: "I've added 'John Doe' to your contacts."
+  3.  **Prompt for Details:** For each data type, you MUST ask for the necessary fields. For example, if adding a contact, ask for the name, then phone, then address, etc.
+  4.  **Use Tools for Data:** ALL actions involving user data (adding, showing, etc.) MUST use the 'scanEncryptedResources' tool. Formulate the tool input based on the user's guided responses.
+  5.  **Confirmation:** After a tool action, confirm with the user. For example: "I've added 'John Doe' to your contacts."
 
   **Conversation History:**
   {{#if history}}
@@ -101,7 +98,7 @@ const prompt = ai.definePrompt({
   - User: "--add"
   - You: "What would you like to add? You can add contacts, documents, notes, etc."
   - User: "a new contact"
-  - You: "Got it. Performing security check. What is the contact's name?"
+  - You: "Got it. What is the contact's name?"
   - User: "John Doe"
   - You: "What is John Doe's phone number?"
   - User: "555-1234"
@@ -129,15 +126,25 @@ const dataQueryFromPromptFlow = ai.defineFlow(
       };
     }
 
-    const {output} = await prompt(input);
+    const llmResponse = await ai.generate({
+        prompt: prompt.compile({input}),
+        model: 'googleai/gemini-pro',
+        tools: [scanEncryptedResourcesTool]
+    });
 
-    if (output.toolRequests.length > 0) {
+    const output = llmResponse.output();
+    if (!output) {
+      if(llmResponse.text) {
+        return { relevantData: llmResponse.text };
+      }
+      throw new Error('No output from LLM.');
+    }
+
+    if (output.toolRequests && output.toolRequests.length > 0) {
       const toolRequest = output.toolRequests[0];
-       // If the LLM wants to use a tool, execute it.
        if (toolRequest?.tool === 'scanEncryptedResources') {
           const toolOutput = await scanEncryptedResourcesTool(toolRequest.input);
           
-          // Now, generate a final response *including* the tool's output.
           const finalResponse = await ai.generate({
             prompt: `You have just performed the action '${toolRequest.input.action}' and the result was: '${toolOutput}'. Please provide a brief, natural language confirmation to the user that the action was completed.`,
             model: 'googleai/gemini-pro',
@@ -148,8 +155,7 @@ const dataQueryFromPromptFlow = ai.defineFlow(
           };
        }
     }
-
-    // Otherwise, return the standard text response.
+    
     return {
         relevantData: output.text,
     };
