@@ -4,17 +4,16 @@ import type { Message } from './chat-interface';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 
 export function ChatMessage({ message }: { message: Message }) {
   const isBot = message.sender === 'bot';
 
   if (message.isTyping) {
     return (
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 p-4 rounded-lg">
         <Avatar className="w-8 h-8">
-           <AvatarFallback className="bg-[#19c37d]">
-             <Bot className="w-5 h-5 text-white" />
+           <AvatarFallback className="bg-primary/20">
+             <Bot className="w-5 h-5 text-primary" />
            </AvatarFallback>
          </Avatar>
         <div className="flex items-center gap-2 pt-2">
@@ -30,17 +29,17 @@ export function ChatMessage({ message }: { message: Message }) {
     <div
       className={cn(
         'w-full',
-        isBot ? 'bg-card' : 'bg-transparent'
+        isBot ? 'bg-transparent' : 'bg-transparent'
       )}
     >
-      <div className='flex items-start gap-4 p-4 max-w-4xl mx-auto'>
+      <div className='flex items-start gap-4 p-4 rounded-lg hover:bg-card/50'>
         <Avatar className="w-8 h-8">
           <AvatarFallback
             className={cn(
-              isBot ? 'bg-[#19c37d]' : 'bg-primary'
+              isBot ? 'bg-primary/20' : 'bg-secondary'
             )}
           >
-            {isBot ? <Bot className="w-5 h-5 text-white" /> : <User className="w-5 h-5" />}
+            {isBot ? <Bot className="w-5 h-5 text-primary" /> : <User className="w-5 h-5" />}
           </AvatarFallback>
         </Avatar>
         <div

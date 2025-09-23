@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Plus, Settings } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { handleQuery } from '@/app/actions';
 import { ChatMessage } from './chat-message';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { BackupPrompt } from '@/components/backup-prompt';
 
 export type Message = {
   id: number;
@@ -23,7 +24,7 @@ export function ChatInterface() {
 
   useEffect(() => {
     setMessages([
-        { id: 0, sender: 'bot', text: 'Hello! How can I help you with your secured data today?' },
+        { id: 0, sender: 'bot', text: 'Authentication successful. How can I assist you?' },
       ]);
   }, []);
   
@@ -48,7 +49,7 @@ export function ChatInterface() {
     try {
       const result = await handleQuery({
         query: input,
-        encryptedResources: [], // Not showing resources anymore
+        encryptedResources: [],
       });
 
       const botMessage: Message = {
@@ -80,21 +81,32 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Sidebar - Hidden for now to focus on chat, can be re-added */}
-      {/* <div className="w-64 bg-gray-900 p-4">...</div> */}
+       {/* <BackupPrompt /> */}
 
-      <div className="flex-1 flex flex-col items-center">
-        <header className="w-full max-w-4xl p-4 flex justify-between items-center">
-            <h1 className="text-xl font-semibold">MyDataGPT</h1>
-            <div>
-                <Button variant="ghost" size="icon"><Plus /></Button>
-                <Button variant="ghost" size="icon"><Settings /></Button>
-            </div>
-        </header>
-
+      <div className="flex-1 flex flex-col items-center bg-background">
         <ScrollArea className="flex-1 w-full" ref={scrollAreaRef}>
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="flex flex-col gap-6 py-6">
+          <div className="max-w-3xl mx-auto px-4">
+            {messages.length === 1 && (
+              <div className="flex flex-col items-center text-center pt-20 pb-12">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                  </div>
+                  <h1 className="text-2xl font-semibold text-foreground">Your Private Vault</h1>
+              </div>
+            )}
+            <div className="flex flex-col gap-2 pb-6">
               {messages.map(msg => (
                 <ChatMessage key={msg.id} message={msg} />
               ))}
@@ -102,7 +114,7 @@ export function ChatInterface() {
           </div>
         </ScrollArea>
 
-        <div className="w-full max-w-4xl p-4 sticky bottom-0 bg-background">
+        <div className="w-full max-w-3xl p-4 sticky bottom-0 bg-gradient-to-t from-background to-transparent">
             <div className="flex-1">
               <form onSubmit={handleSubmit} className="relative">
                 <Textarea
@@ -120,8 +132,8 @@ export function ChatInterface() {
                     </Button>
                 </div>
               </form>
-               <p className="text-xs text-center text-muted-foreground pt-2">
-                  MyDataGPT can make mistakes. Consider checking important information.
+               <p className="text-xs text-center text-muted-foreground pt-3 px-10">
+                  All data is end-to-end encrypted. Only you can access your information.
               </p>
             </div>
         </div>
