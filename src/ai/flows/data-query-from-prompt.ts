@@ -117,17 +117,31 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     }
 
     const response = await prompt(input);
-    
-    // Check if the LLM decided to use the tool
-    const toolCall = response.toolCalls?.[0];
-    if (toolCall?.name === 'scanEncryptedResources') {
-       // If so, execute the tool and return its output.
-       const toolOutput = await scanEncryptedResourcesTool(toolCall.input);
-        return {
-            relevantData: toolOutput,
-        };
+
+    const toolCalls = response.toolCalls();
+
+    if (toolCalls.length > 0) {
+      const toolCall = toolCalls[0];
+       // If the LLM wants to use a tool, execute it.
+       if (toolCall?.name === 'scanEncryptedResources') {
+          const toolOutput = await scanEncryptedResourcesTool(toolCall.input);
+          
+          // Now, generate a final response *including* the tool's output.
+          const finalResponse = await ai.generate({
+            prompt: [
+              response.request.messages,
+              response.message,
+              {toolResult: {name: 'scanEncryptedResources', result: toolOutput}}
+            ],
+            model: 'googleai/gemini-2.5-flash',
+          });
+
+          return {
+              relevantData: finalResponse.text ?? 'Action completed.',
+          };
+       }
     }
-    
+
     // Otherwise, return the standard text response.
     return {
         relevantData: response.text ?? 'I am not sure how to answer that.',
