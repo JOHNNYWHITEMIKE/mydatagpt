@@ -136,17 +136,14 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     const llmResponse = await ai.generate({
         prompt: prompt.compile({input}),
         model: 'googleai/gemini-pro',
-        tools: [terminalTool]
+        tools: [terminalTool],
+        forceTool: { tool: 'terminalTool' }
     });
-
-    const output = llmResponse.output();
-
-    if (llmResponse.hasToolRequests) {
-      const toolRequest = llmResponse.toolRequests[0];
-       if (toolRequest?.tool === 'terminalTool') {
-          const toolOutput = await terminalTool(toolRequest.input);
-          return { relevantData: toolOutput };
-       }
+    
+    const toolRequest = llmResponse.toolRequest();
+    if (toolRequest?.tool === 'terminalTool') {
+       const toolOutput = await terminalTool(toolRequest.input);
+       return { relevantData: toolOutput };
     }
     
     return {
