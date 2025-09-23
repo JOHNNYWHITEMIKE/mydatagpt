@@ -43,14 +43,21 @@ export function ChatInterface() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { id: Date.now(), sender: 'user', text: input };
+    const currentMessages = [...messages, userMessage];
+
     setMessages(prev => [...prev, userMessage, { id: Date.now() + 1, sender: 'bot', text: '', isTyping: true }]);
     setInput('');
     setIsLoading(true);
 
     try {
+      const historyForAI = currentMessages.slice(1).map(msg => ({
+        sender: msg.sender,
+        text: msg.text as string // Assuming text is always string for AI history
+      }));
+
       const result = await handleQuery({
         query: input,
-        encryptedResources: [], // In a real app, you'd pass identifiers for user's resources
+        history: historyForAI,
       });
 
       const botMessage: Message = {

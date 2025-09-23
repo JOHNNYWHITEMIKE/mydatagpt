@@ -13,9 +13,15 @@ import {z} from 'genkit';
 
 const DataQueryFromPromptInputSchema = z.object({
   query: z.string().describe('The natural language query from the user.'),
-  encryptedResources: z
-    .array(z.string())
-    .describe('An array of encrypted resources available to search.'),
+  history: z
+    .array(
+      z.object({
+        sender: z.enum(['user', 'bot']),
+        text: z.string(),
+      })
+    )
+    .optional()
+    .describe('The conversation history.'),
 });
 export type DataQueryFromPromptInput = z.infer<typeof DataQueryFromPromptInputSchema>;
 
@@ -81,6 +87,13 @@ const prompt = ai.definePrompt({
   4.  **Prompt for Details:** For each data type, you MUST ask for the necessary fields. For example, if adding a contact, ask for the name, then phone, then address, etc.
   5.  **Use Tools for Data:** ALL actions involving user data (adding, showing, etc.) MUST use the 'scanEncryptedResources' tool. Formulate the tool input based on the user's guided responses.
   6.  **Confirmation:** After a tool action, confirm with the user. For example: "I've added 'John Doe' to your contacts."
+
+  **Conversation History:**
+  {{#if history}}
+  {{#each history}}
+  - {{sender}}: {{text}}
+  {{/each}}
+  {{/if}}
 
   **Example Flow (Private Mode):**
   - User: "mydatagpt"
