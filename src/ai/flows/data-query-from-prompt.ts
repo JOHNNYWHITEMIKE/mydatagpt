@@ -63,7 +63,7 @@ const prompt = ai.definePrompt({
   
   3.  **Tool Usage:** If and ONLY IF the query is a request for personal data (Private Mode), you must use the 'scanEncryptedResources' tool to retrieve it. Do NOT use this tool for general questions.
 
-  4.  **Help Command:** If the user enters "mydatagpt help", you MUST respond with the following list of commands and nothing else. Do not use any tools.
+  4.  **Help Command:** If the user enters "mydatagpt", you MUST respond with the following list of commands and nothing else. Do not use any tools.
       mydatagpt commands:
       --add
       --edit
@@ -81,7 +81,7 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     outputSchema: DataQueryFromPromptOutputSchema,
   },
   async input => {
-    if (input.query.trim().toLowerCase() === 'mydatagpt help') {
+    if (input.query.trim().toLowerCase() === 'mydatagpt') {
       return {
         relevantData: `mydatagpt commands:
       --add
