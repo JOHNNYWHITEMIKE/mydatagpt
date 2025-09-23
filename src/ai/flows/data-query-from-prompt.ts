@@ -32,21 +32,19 @@ export async function dataQueryFromPrompt(input: DataQueryFromPromptInput): Prom
 
 const scanEncryptedResourcesTool = ai.defineTool({
   name: 'scanEncryptedResources',
-  description: 'Scans and searches available encrypted resources based on a query for personal user data.',
+  description: 'After a security check, this tool can scan, add, edit, or delete data from the user\'s encrypted resources. This is the ONLY tool that can interact with the user\'s private data.',
   inputSchema: z.object({
-    query: z.string().describe('The query to use when scanning the encrypted resources.'),
-    resources: z
-      .array(z.string())
-      .describe('The encrypted resources to scan and search.'),
+    action: z.enum(['add', 'edit', 'delete', 'show']).describe('The action to perform.'),
+    dataType: z.string().optional().describe('The type of data (e.g., contact, photo album, note).'),
+    query: z.string().describe('The specific query or data for the action.'),
   }),
-  outputSchema: z.string().describe('The relevant data found in the encrypted resources.'),
+  outputSchema: z.string().describe('The result of the operation, or a confirmation message.'),
 }, async (input) => {
   // In a real application, this is where you would trigger a biometric check.
   // For example: `const authenticated = await biometricCheck();`
-  // If authenticated, you would proceed to decrypt and search the resources.
-  // For now, we will simulate this process.
-  console.log(`[Security Check Passed] Scanning resources ${input.resources.join(', ')} for query: ${input.query}`);
-  return `Accessing secure data for query: "${input.query}". Here is the information... [simulated]`;
+  // If authenticated, you would proceed to decrypt and search/modify the resources.
+  console.log(`[Security Check Passed] Performing action '${input.action}' on resources.`);
+  return `Simulating successful '${input.action}' action for query: "${input.query}". The user's private data has been accessed.`;
 });
 
 const prompt = ai.definePrompt({
@@ -54,24 +52,50 @@ const prompt = ai.definePrompt({
   input: {schema: DataQueryFromPromptInputSchema},
   output: {schema: DataQueryFromPromptOutputSchema},
   tools: [scanEncryptedResourcesTool],
-  prompt: `You are a dual-purpose AI assistant. Your primary function is to act as a standard, helpful chatbot, just like ChatGPT. However, you have a hidden, secondary function: to securely retrieve personal data for the user from their encrypted vault.
+  prompt: `You are a dual-purpose AI assistant with a strict security protocol.
 
-  Here's how you should behave:
-  1.  **Default Behavior (Public Mode):** For any general question (e.g., "What's the capital of France?", "Write a poem about clouds", "Explain quantum computing"), you MUST respond as a standard AI assistant. DO NOT use any tools. Act as if you have no knowledge of a secure vault.
-  
-  2.  **Secure Retrieval (Private Mode):** You will ONLY activate your secondary function if the user's query explicitly or implicitly asks for personal information, files, media, or data that would be stored in a private vault. Keywords might include "my documents," "show me the photos from my trip," "find my contract," "what's my mother's address" etc.
-  
-  3.  **Tool Usage:** If and ONLY IF the query is a request for personal data (Private Mode), you must use the 'scanEncryptedResources' tool to retrieve it. Do NOT use this tool for general questions.
+  **Public Mode (Default Behavior):**
+  - For any general question (e.g., "What's the capital of France?", "Write a poem"), you MUST respond as a standard, helpful AI assistant like ChatGPT.
+  - In Public Mode, you MUST NOT use any tools or acknowledge the existence of a secure vault. Your responses should be generic and helpful.
 
-  4.  **Help Command:** If the user enters "mydatagpt", you MUST respond with the following list of commands and nothing else. Do not use any tools.
-      mydatagpt commands:
-      --add
-      --edit
-      --delete
-      --show
+  **Private Mode (Secure Data Management):**
+  - Private Mode is activated ONLY by the user query "mydatagpt".
+  - If the user query is EXACTLY "mydatagpt", you must respond with the command list and await the user's next input. Your response must be:
+    "mydatagpt commands:
+    --add
+    --edit
+    --delete
+    --show"
+  - After showing the commands, your NEXT response MUST be guided by the user's choice of command (--add, --edit, --delete, --show). You will now act as an interactive guide for that task.
+
+  **Private Mode: Guided Interaction Rules:**
+  1.  **Security First:** Before performing any data action, you must state that a security check is being performed.
+  2.  **Be Interactive:** Guide the user. If they say "--add", ask them WHAT they want to add.
+  3.  **Data Types:** You understand the following data structures:
+      - **contacts**: name, phone number, address, email.
+      - **documents**: title, content.
+      - **images/videos**: title, album name.
+      - **accounts** or **email:password**: service/website, username/email, password.
+      - **notes**: title, content.
+      - **reminders**: content, due date/time.
+  4.  **Prompt for Details:** For each data type, you MUST ask for the necessary fields. For example, if adding a contact, ask for the name, then phone, then address, etc.
+  5.  **Use Tools for Data:** ALL actions involving user data (adding, showing, etc.) MUST use the 'scanEncryptedResources' tool. Formulate the tool input based on the user's guided responses.
+  6.  **Confirmation:** After a tool action, confirm with the user. For example: "I've added 'John Doe' to your contacts."
+
+  **Example Flow (Private Mode):**
+  - User: "mydatagpt"
+  - You: "mydatagpt commands:\n--add\n--edit\n--delete\n--show"
+  - User: "--add"
+  - You: "What would you like to add? You can add contacts, documents, notes, etc."
+  - User: "a new contact"
+  - You: "Got it. Performing security check. What is the contact's name?"
+  - User: "John Doe"
+  - You: "What is John Doe's phone number?"
+  - User: "555-1234"
+  - You: (Continue asking for address, email... then call the tool) -> Use scanEncryptedResourcesTool({ action: 'add', dataType: 'contact', query: 'name: John Doe, phone: 555-1234, ...' })
 
   User Query: {{{query}}}
-`, 
+`,
 });
 
 const dataQueryFromPromptFlow = ai.defineFlow(
@@ -81,6 +105,7 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     outputSchema: DataQueryFromPromptOutputSchema,
   },
   async input => {
+    // This special handling for 'mydatagpt' is still needed to kickstart the Private Mode flow.
     if (input.query.trim().toLowerCase() === 'mydatagpt') {
       return {
         relevantData: `mydatagpt commands:
@@ -92,15 +117,18 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     }
 
     const response = await prompt(input);
+    
+    // Check if the LLM decided to use the tool
     const toolCall = response.toolCalls?.[0];
-
     if (toolCall?.name === 'scanEncryptedResources') {
+       // If so, execute the tool and return its output.
        const toolOutput = await scanEncryptedResourcesTool(toolCall.input);
         return {
             relevantData: toolOutput,
         };
     }
     
+    // Otherwise, return the standard text response.
     return {
         relevantData: response.text ?? 'I am not sure how to answer that.',
     };
