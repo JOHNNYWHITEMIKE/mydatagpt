@@ -39,7 +39,7 @@ export async function dataQueryFromPrompt(input: DataQueryFromPromptInput): Prom
 
 const terminalTool = ai.defineTool({
   name: 'terminalTool',
-  description: 'A tool that simulates a Linux terminal. It can manage a virtual file system including creating, reading, and deleting files and directories. This is the ONLY tool that can interact with the user\'s private virtual file system.',
+  description: 'A tool that simulates a Linux terminal for the MyDataGPT database. It can manage a virtual file system including creating, reading, and deleting files and directories. This is the ONLY tool that can interact with the user\'s private MyDataGPT database.',
   inputSchema: z.object({
     command: z.string().describe('The full command to execute, e.g., "ls -l /documents".'),
   }),
@@ -105,30 +105,29 @@ const prompt = ai.definePrompt({
   input: {schema: DataQueryFromPromptInputSchema},
   output: {schema: DataQueryFromPromptOutputSchema},
   tools: [terminalTool],
-  prompt: `You are a dual-purpose AI assistant with a strict security protocol, acting as a simulated Linux terminal environment (like Termux).
+  prompt: `You are a dual-purpose AI assistant with two modes: "Ollama Mode" and "MyDataGPT Mode".
 
-**Public Mode (Default Behavior):**
-- If the user's query is NOT a recognized terminal command (e.g., "What's the capital of France?"), respond as a standard, helpful AI assistant like ChatGPT.
-- In Public Mode, you MUST NOT use any tools or acknowledge the existence of a secure terminal or file system.
+**Ollama Mode (Default Behavior):**
+- You are a standard, helpful AI assistant like ChatGPT. Your knowledge is general, and you have no memory of past conversations after the app closes.
+- In this mode, you MUST NOT use any tools or acknowledge the existence of a secure terminal, file system, or "MyDataGPT". You are just a generic chatbot.
 
-**Private Mode (Simulated Terminal):**
-- Private Mode is activated when the user's query is a standard Linux/Unix terminal command.
-- Recognized commands include: \`ls\`, \`cd\`, \`pwd\`, \`mkdir\`, \`rmdir\`, \`touch\`, \`cp\`, \`mv\`, \`rm\`, \`cat\`, \`less\`, \`head\`, \`tail\`, \`whoami\`, \`date\`, \`clear\`, \`exit\`.
-- When you recognize a terminal command, you MUST use the \`terminalTool\` to execute it.
-- Your primary role is to pass the user's exact command string to the \`terminalTool\`. Do not interpret it or respond conversationally.
-- The output should look exactly like it would in a real terminal. Do not add conversational text unless the command is invalid or an error occurs.
-- If the command is \`clear\`, you must output the single word "CLEAR_SCREEN".
-- If the command is \`exit\`, you must output the single word "EXIT_SESSION".
-- You must maintain the state of the virtual file system (current directory, file structure) based on the history of commands.
+**MyDataGPT Mode (Private Data Vault):**
+- This mode is activated ONLY when the user's query starts with the word "mygpt".
+- In this mode, you act as a simulated Linux terminal environment for a secure, persistent database called MyDataGPT.
+- When you recognize a command within MyDataGPT mode (e.g., "mygpt ls -l", "mygpt cat my_secrets.txt"), you MUST use the \`terminalTool\` to execute the command part (e.g., "ls -l", "cat my_secrets.txt").
+- Your primary role is to pass the user's command string (without the "mygpt" prefix) to the \`terminalTool\`.
+- The output should look exactly like it would in a real terminal.
+- If the user types just "mygpt", you should list available commands: --add, --edit, --delete, --show.
+- If the user types "mygpt --add", you should ask what they want to add (contact, document, image, etc.) and guide them. This is a conversational interaction and does NOT use the terminalTool.
 
-**Conversation History (Represents Terminal State):**
+**Conversation History (Represents Terminal State in MyDataGPT Mode):**
 {{#if history}}
 {{#each history}}
 - {{sender}}: {{text}}
 {{/each}}
 {{/if}}
 
-**IMPORTANT:** If you are not confident that the user input is a terminal command, you MUST default to Public Mode. Only act as a terminal if the command is unambiguous.
+**IMPORTANT:** If the query does not start with "mygpt", you MUST remain in Ollama Mode.
 
 User Query: {{{query}}}
 `,
@@ -142,12 +141,12 @@ const dataQueryFromPromptFlow = ai.defineFlow(
   },
   async (input: DataQueryFromPromptInput) => {
     
-    const trimmedQuery = input.query.trim().toLowerCase();
+    const trimmedQuery = input.query.trim();
 
-    if (trimmedQuery === 'clear') {
+    if (trimmedQuery.toLowerCase() === 'clear') {
         return { relevantData: 'CLEAR_SCREEN' };
     }
-     if (trimmedQuery === 'exit') {
+     if (trimmedQuery.toLowerCase() === 'exit') {
         return { relevantData: 'EXIT_SESSION' };
     }
 
@@ -158,9 +157,11 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     });
     
     const toolRequest = llmResponse.toolRequest();
-    if (toolRequest?.tool === 'terminalTool') {
-       const toolOutput = await terminalTool(toolRequest.input);
-       return { relevantData: toolOutput };
+    // Check if the model is trying to use the terminalTool.
+    // The prompt instructs it to only do this in "MyDataGPT" mode.
+    if (toolRequest?.tool === 'terminalTool' && typeof toolRequest.input.command === 'string') {
+        const toolOutput = await terminalTool({ command: toolRequest.input.command });
+        return { relevantData: toolOutput };
     }
     
     // Default to conversational response if no tool is called
@@ -170,18 +171,9 @@ const dataQueryFromPromptFlow = ai.defineFlow(
         };
     }
 
-    // If for some reason we get here, it's an unhandled case.
-    // Try to force a tool call for commands that should have one.
-    const potentialCommands = ['ls', 'cd', 'pwd', 'mkdir', 'rmdir', 'touch', 'cp', 'mv', 'rm', 'cat', 'less', 'head', 'tail', 'whoami', 'date'];
-    const isCommand = potentialCommands.some(cmd => trimmedQuery.startsWith(cmd));
-
-    if (isCommand) {
-        const forcedToolResponse = await terminalTool({ command: input.query.trim() });
-        return { relevantData: forcedToolResponse };
-    }
-
+    // Fallback for cases where the model fails to generate text or a tool call.
     return {
-        relevantData: "Sorry, I'm not sure how to handle that command.",
+        relevantData: "Sorry, I'm not sure how to handle that request.",
     };
   }
 );

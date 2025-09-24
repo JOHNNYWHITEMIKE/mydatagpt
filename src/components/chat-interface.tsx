@@ -24,6 +24,8 @@ export function ChatInterface() {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // This resets the chat to its initial state every time the component mounts,
+    // simulating the "Ollama database reset"
     setMessages([
         { id: 0, sender: 'bot', text: 'How can I help you today?' },
       ]);
@@ -43,10 +45,17 @@ export function ChatInterface() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { id: Date.now(), sender: 'user', text: input };
-    let currentMessages = [...messages, userMessage];
+    
+    // This is the history that will be passed to the AI
+    // We filter out the initial welcome message
+    const currentHistory = messages.filter(m => m.id !== 0);
+    const historyForAI = [...currentHistory, userMessage].map(msg => ({
+      sender: msg.sender,
+      text: msg.text as string
+    }));
 
     if (input.trim().toLowerCase() === 'clear') {
-        setMessages([]);
+        setMessages([ { id: 0, sender: 'bot', text: 'How can I help you today?' } ]);
         setInput('');
         return;
     }
@@ -56,19 +65,17 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const historyForAI = currentMessages.slice(1).map(msg => ({
-        sender: msg.sender,
-        text: msg.text as string // Assuming text is always string for AI history
-      }));
-
       const result = await handleQuery({
         query: input,
         history: historyForAI,
       });
 
       if (result.relevantData === 'CLEAR_SCREEN') {
-        setMessages([]);
-      } else {
+         setMessages([ { id: 0, sender: 'bot', text: 'How can I help you today?' } ]);
+      } else if (result.relevantData === 'EXIT_SESSION') {
+         setMessages([ { id: 0, sender: 'bot', text: 'Session ended. How can I help you today?' } ]);
+      }
+      else {
         const botMessage: Message = {
           id: Date.now() + 2,
           sender: 'bot',
