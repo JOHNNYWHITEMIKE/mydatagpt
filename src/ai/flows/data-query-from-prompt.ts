@@ -49,34 +49,55 @@ const terminalTool = ai.defineTool({
   // For now, we'll simulate the output.
   console.log(`Executing terminal command: ${input.command}`);
   
-  const [commandName, ...args] = input.command.split(' ');
+  const [commandName, ...args] = input.command.trim().split(' ');
 
-  if (commandName === 'ls') {
-    return 'Simulating ls: \n-rw-r--r-- 1 user user 1024 Jan 1 12:00 my_secrets.txt\ndrwxr-xr-x 2 user user 4096 Jan 1 12:00 photos';
-  }
-  if (commandName === 'cat') {
+  switch (commandName) {
+    case 'ls':
+      if (args.includes('-l')) {
+        return 'Simulating ls -l:\n-rw-r--r-- 1 user user 1024 Jan 1 12:00 my_secrets.txt\ndrwxr-xr-x 2 user user 4096 Jan 1 12:00 photos';
+      }
+       if (args.includes('-a')) {
+        return 'Simulating ls -a:\n.\n..\n.hidden_file\nmy_secrets.txt\nphotos';
+      }
+      return 'Simulating ls:\nmy_secrets.txt\nphotos';
+    case 'cat':
       if (args[0]) {
-        return `Simulating 'cat ${args[0]}': This is the content of your secret file.`;
+        return `Simulating 'cat ${args[0]}': This is the content of the file.`;
       }
       return 'Usage: cat <filename>';
-  }
-  if (commandName === 'mkdir' || commandName === 'touch') {
-    return ``; // Successful creation commands have no output
-  }
-  if (commandName === 'rm' || commandName === 'rmdir') {
-    return ``; // Successful deletion commands have no output
-  }
-  if (commandName === 'pwd') {
-      return '/home/user';
-  }
-   if (commandName === 'whoami') {
+    case 'head':
+      if (args[0]) {
+        return `Simulating 'head ${args[0]}': This is the beginning of the file.`;
+      }
+      return 'Usage: head <filename>';
+    case 'tail':
+       if (args[0]) {
+        return `Simulating 'tail ${args[0]}': This is the end of the file.`;
+      }
+      return 'Usage: tail <filename>';
+    case 'less':
+       if (args[0]) {
+        return `Simulating 'less ${args[0]}': (Viewer is active, press 'q' to quit)`;
+      }
+      return 'Usage: less <filename>';
+    case 'mkdir':
+    case 'touch':
+    case 'cp':
+    case 'mv':
+    case 'rm':
+    case 'rmdir':
+    case 'cd':
+      // These commands succeed quietly in a terminal
+      return '';
+    case 'pwd':
+      return '/home/user/documents';
+    case 'whoami':
       return 'user';
-  }
-    if (commandName === 'date') {
+    case 'date':
       return new Date().toString();
+    default:
+      return `Simulated execution of '${input.command}'. Unrecognized command.`;
   }
-
-  return `Simulated execution of '${input.command}'.`;
 });
 
 const prompt = ai.definePrompt({
@@ -84,21 +105,21 @@ const prompt = ai.definePrompt({
   input: {schema: DataQueryFromPromptInputSchema},
   output: {schema: DataQueryFromPromptOutputSchema},
   tools: [terminalTool],
-  prompt: `You are a dual-purpose AI assistant with a strict security protocol.
+  prompt: `You are a dual-purpose AI assistant with a strict security protocol, acting as a simulated Linux terminal environment (like Termux).
 
 **Public Mode (Default Behavior):**
-- You are a helpful, harmless AI assistant like ChatGPT.
-- For any general question that is NOT a recognized terminal command (e.g., "What's the capital of France?", "Write a poem"), you MUST respond as a standard AI assistant.
-- In Public Mode, you MUST NOT use any tools or acknowledge the existence of a secure terminal or file system. Your responses should be generic and helpful.
+- If the user's query is NOT a recognized terminal command (e.g., "What's the capital of France?"), respond as a standard, helpful AI assistant like ChatGPT.
+- In Public Mode, you MUST NOT use any tools or acknowledge the existence of a secure terminal or file system.
 
 **Private Mode (Simulated Terminal):**
-- Private Mode is activated when the user's query looks like a standard Linux/Unix terminal command.
+- Private Mode is activated when the user's query is a standard Linux/Unix terminal command.
 - Recognized commands include: \`ls\`, \`cd\`, \`pwd\`, \`mkdir\`, \`rmdir\`, \`touch\`, \`cp\`, \`mv\`, \`rm\`, \`cat\`, \`less\`, \`head\`, \`tail\`, \`whoami\`, \`date\`, \`clear\`, \`exit\`.
 - When you recognize a terminal command, you MUST use the \`terminalTool\` to execute it.
-- You must maintain the state of the virtual file system (current directory, file structure) based on the history of commands.
+- Your primary role is to pass the user's exact command string to the \`terminalTool\`. Do not interpret it or respond conversationally.
 - The output should look exactly like it would in a real terminal. Do not add conversational text unless the command is invalid or an error occurs.
 - If the command is \`clear\`, you must output the single word "CLEAR_SCREEN".
 - If the command is \`exit\`, you must output the single word "EXIT_SESSION".
+- You must maintain the state of the virtual file system (current directory, file structure) based on the history of commands.
 
 **Conversation History (Represents Terminal State):**
 {{#if history}}
@@ -106,14 +127,6 @@ const prompt = ai.definePrompt({
 - {{sender}}: {{text}}
 {{/each}}
 {{/if}}
-
-**Example Flow (Private Mode):**
-- User: "ls -a"
-- You: (Call terminalTool({ command: 'ls -a' })) -> Output the result from the tool.
-- User: "mkdir my_new_folder"
-- You: (Call terminalTool({ command: 'mkdir my_new_folder' })) -> Return no output, just wait for next prompt.
-- User: "ls"
-- You: (Call terminalTool({ command: 'ls' })) -> Output should now include 'my_new_folder'.
 
 **IMPORTANT:** If you are not confident that the user input is a terminal command, you MUST default to Public Mode. Only act as a terminal if the command is unambiguous.
 
@@ -129,15 +142,19 @@ const dataQueryFromPromptFlow = ai.defineFlow(
   },
   async (input: DataQueryFromPromptInput) => {
     
-    if (input.query.trim().toLowerCase() === 'clear') {
+    const trimmedQuery = input.query.trim().toLowerCase();
+
+    if (trimmedQuery === 'clear') {
         return { relevantData: 'CLEAR_SCREEN' };
+    }
+     if (trimmedQuery === 'exit') {
+        return { relevantData: 'EXIT_SESSION' };
     }
 
     const llmResponse = await ai.generate({
         prompt: prompt.compile({input}),
         model: 'googleai/gemini-pro',
-        tools: [terminalTool],
-        forceTool: { tool: 'terminalTool' }
+        tools: [terminalTool]
     });
     
     const toolRequest = llmResponse.toolRequest();
@@ -146,8 +163,25 @@ const dataQueryFromPromptFlow = ai.defineFlow(
        return { relevantData: toolOutput };
     }
     
+    // Default to conversational response if no tool is called
+    if (llmResponse.text) {
+         return {
+            relevantData: llmResponse.text,
+        };
+    }
+
+    // If for some reason we get here, it's an unhandled case.
+    // Try to force a tool call for commands that should have one.
+    const potentialCommands = ['ls', 'cd', 'pwd', 'mkdir', 'rmdir', 'touch', 'cp', 'mv', 'rm', 'cat', 'less', 'head', 'tail', 'whoami', 'date'];
+    const isCommand = potentialCommands.some(cmd => trimmedQuery.startsWith(cmd));
+
+    if (isCommand) {
+        const forcedToolResponse = await terminalTool({ command: input.query.trim() });
+        return { relevantData: forcedToolResponse };
+    }
+
     return {
-        relevantData: llmResponse.text,
+        relevantData: "Sorry, I'm not sure how to handle that command.",
     };
   }
 );
