@@ -161,7 +161,7 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     
     // If the model wants to call a tool, execute it.
     if (toolRequest) {
-      const toolResponse = await ll.invoke(toolRequest);
+      const toolResponse = await toolRequest.invoke();
       
       const followUpResponse = await ai.generate({
         prompt: prompt.compile({input}),
@@ -189,5 +189,3 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     };
   }
 );
-
-    
