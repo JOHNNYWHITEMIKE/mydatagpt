@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, KeyRound, Fingerprint } from "lucide-react";
+import { KeyRound, Fingerprint, Bot } from "lucide-react";
 import {
   Alert,
   AlertDescription,
@@ -86,8 +86,8 @@ export default function LoginPage() {
                     </div>
                 )}
             </div>
-            <Button onClick={handleLogin} className="w-full bg-accent hover:bg-accent/90" disabled={!hasCameraPermission}>
-              <Shield className="mr-2 h-4 w-4" /> Authenticate
+            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90" disabled={!hasCameraPermission}>
+              Authenticate
             </Button>
           </div>
         )
@@ -95,7 +95,7 @@ export default function LoginPage() {
         return (
             <div className="space-y-4">
                 <Input type="password" placeholder="Enter your PIN" className="text-center" maxLength={6} />
-                <Button onClick={handleLogin} className="w-full bg-accent hover:bg-accent/90">
+                <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
                     <KeyRound className="mr-2 h-4 w-4" /> Unlock
                 </Button>
             </div>
@@ -104,7 +104,7 @@ export default function LoginPage() {
         return (
             <div className="space-y-4">
                 <Input type="password" placeholder="Enter your secret phrase" />
-                <Button onClick={handleLogin} className="w-full bg-accent hover:bg-accent/90">
+                <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
                     <Fingerprint className="mr-2 h-4 w-4" /> Access Vault
                 </Button>
             </div>
@@ -117,13 +117,13 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
       <div className="w-full max-w-sm p-8 space-y-6 text-center rounded-lg shadow-2xl bg-card">
         <div className="flex justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
+             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                <Bot className="w-8 h-8 text-primary-foreground" />
+              </div>
         </div>
-        <h1 className="text-2xl font-bold">Authentication Required</h1>
+        <h1 className="text-2xl font-bold">Welcome to MyDataGPT</h1>
         <p className="text-muted-foreground">
-          {authMethod === 'face' && 'Position your face in the frame to unlock.'}
+          {authMethod === 'face' && 'Authenticate to access your secure vault.'}
           {authMethod === 'pin' && 'Enter your secure PIN.'}
           {authMethod === 'phrase' && 'Enter your secret passphrase.'}
         </p>
