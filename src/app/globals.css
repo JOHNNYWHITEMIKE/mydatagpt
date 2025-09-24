@@ -42,7 +42,7 @@
   }
  
   .dark {
-    --background: 222 14% 18%; /* #2A2D31 */
+    --background: 222 14% 18%; /* #2A2D31 -> ChatGPT #212121 */
     --foreground: 0 0% 98%; /* #FAFAFA */
  
     --card: 222 14% 22%; /* #34373C */
@@ -51,7 +51,7 @@
     --popover: 222 14% 10%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 168 80% 35%; /* #10A37F - Main Green */
+    --primary: 168 76% 42%; /* #10A37F -> ChatGPT Teal #10a37f */
     --primary-foreground: 0 0% 98%;
  
     --secondary: 222 14% 25%;
@@ -60,7 +60,7 @@
     --muted: 222 14% 25%;
     --muted-foreground: 222 5% 65%;
  
-    --accent: 168 80% 35%;
+    --accent: 168 76% 42%;
     --accent-foreground: 0 0% 98%;
  
     --destructive: 0 63% 31%;
@@ -68,7 +68,7 @@
  
     --border: 222 14% 28%;
     --input: 222 14% 28%;
-    --ring: 168 80% 40%;
+    --ring: 168 76% 42%;
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;

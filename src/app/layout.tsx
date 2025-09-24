@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'MyDataGPT',
-  description: 'A conversation with MyDataGPT',
+  title: 'ChatGPT',
+  description: 'A conversation with ChatGPT',
 };
 
 export default function RootLayout({
