@@ -3,10 +3,22 @@
 import type { Message } from './chat-interface';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Bot, User } from 'lucide-react';
+import { User } from 'lucide-react';
 
 const BotIcon = () => (
-    <Bot className="w-6 h-6" />
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+    </svg>
 )
 
 const UserIcon = () => (
@@ -19,7 +31,7 @@ export function ChatMessage({ message }: { message: Message }) {
   if (message.isTyping) {
     return (
       <div className="flex items-start gap-4">
-        <Avatar className="w-10 h-10 bg-primary text-primary-foreground">
+        <Avatar className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center">
            <AvatarFallback className="bg-transparent">
              <BotIcon />
            </AvatarFallback>
@@ -34,13 +46,13 @@ export function ChatMessage({ message }: { message: Message }) {
   }
 
   return (
-    <div className='flex items-start gap-4'>
+    <div className={cn('flex items-start gap-4', !isBot && 'bg-card p-4 rounded-lg')}>
       <Avatar className={cn(
-        "w-10 h-10",
+        "w-10 h-10 flex items-center justify-center",
          isBot ? "bg-primary text-primary-foreground" : "bg-gray-700 text-white"
       )}>
         <AvatarFallback className="bg-transparent text-lg font-bold">
-          {isBot ? <BotIcon /> : 'You'}
+          {isBot ? <BotIcon /> : <UserIcon />}
         </AvatarFallback>
       </Avatar>
       <div className='flex-1 pt-2'>

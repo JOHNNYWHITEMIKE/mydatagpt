@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Bot } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { handleQuery } from '@/app/actions';
 import { ChatMessage } from './chat-message';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,7 +22,10 @@ export function ChatInterface() {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMessages([]);
+    // Start with an initial bot message to guide the user
+    setMessages([
+        { id: Date.now(), sender: 'bot', text: 'How can I help you today?' }
+    ]);
   }, []);
   
   useEffect(() => {
@@ -51,7 +54,7 @@ export function ChatInterface() {
     }];
     
     if (input.trim().toLowerCase() === 'clear') {
-        setMessages([]);
+        setMessages([{ id: Date.now(), sender: 'bot', text: 'How can I help you today?' }]);
         setInput('');
         return;
     }
@@ -67,7 +70,7 @@ export function ChatInterface() {
       });
 
       if (result.relevantData === 'CLEAR_SCREEN') {
-         setMessages([]);
+         setMessages([{ id: Date.now(), sender: 'bot', text: 'How can I help you today?' }]);
       } else if (result.relevantData === 'EXIT_SESSION') {
          setMessages([{ id: Date.now(), sender: 'bot', text: 'Session ended.' }]);
       }
@@ -105,18 +108,30 @@ export function ChatInterface() {
       <div className="flex-1 flex flex-col items-center">
         <ScrollArea className="flex-1 w-full" viewportRef={viewportRef}>
           <div className="max-w-3xl mx-auto px-4 w-full">
-            {messages.length === 0 ? (
+            {messages.length <= 1 ? (
               <div className="flex flex-col items-center text-center pt-20 pb-12">
                    <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-                     <Bot className="w-10 h-10 text-primary-foreground" />
+                     <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
                    </div>
                   <h1 className="text-4xl font-bold text-foreground">MyDataGPT</h1>
-                  <p className="text-muted-foreground mt-2">Your secure, private data vault, disguised as a helpful assistant.</p>
               </div>
             ) : null}
             <div className="flex flex-col gap-6 py-6">
-              {messages.map(msg => (
-                <ChatMessage key={msg.id} message={msg} />
+              {messages.map((msg, index) => (
+                // Don't render the initial 'how can i help' if there are more messages
+                (messages.length > 1 && index === 0) ? null : <ChatMessage key={msg.id} message={msg} />
               ))}
             </div>
           </div>

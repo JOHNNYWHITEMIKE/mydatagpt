@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { KeyRound, Fingerprint, Bot } from "lucide-react";
+import { KeyRound, Fingerprint } from "lucide-react";
 import {
   Alert,
   AlertDescription,
@@ -21,7 +21,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (authMethod !== 'face') {
-        // If we switch away from face auth, stop the video stream.
         if (videoRef.current && videoRef.current.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
@@ -50,7 +49,6 @@ export default function LoginPage() {
 
     getCameraPermission();
     
-    // Cleanup function to stop video stream on component unmount
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -61,7 +59,6 @@ export default function LoginPage() {
   }, [authMethod, toast]);
 
   const handleLogin = () => {
-    // Simulate a successful login
     if (typeof window !== "undefined") {
       localStorage.setItem("isAuthenticated", "true");
     }
@@ -86,8 +83,8 @@ export default function LoginPage() {
                     </div>
                 )}
             </div>
-            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90" disabled={!hasCameraPermission}>
-              Authenticate
+            <Button onClick={handleLogin} className="w-full" variant="outline" disabled={!hasCameraPermission}>
+              Authenticate with Face
             </Button>
           </div>
         )
@@ -95,8 +92,8 @@ export default function LoginPage() {
         return (
             <div className="space-y-4">
                 <Input type="password" placeholder="Enter your PIN" className="text-center" maxLength={6} />
-                <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
-                    <KeyRound className="mr-2 h-4 w-4" /> Unlock
+                <Button onClick={handleLogin} className="w-full" variant="outline">
+                    <KeyRound className="mr-2 h-4 w-4" /> Unlock with PIN
                 </Button>
             </div>
         )
@@ -104,8 +101,8 @@ export default function LoginPage() {
         return (
             <div className="space-y-4">
                 <Input type="password" placeholder="Enter your secret phrase" />
-                <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
-                    <Fingerprint className="mr-2 h-4 w-4" /> Access Vault
+                <Button onClick={handleLogin} className="w-full" variant="outline">
+                    <Fingerprint className="mr-2 h-4 w-4" /> Access with Phrase
                 </Button>
             </div>
         )
@@ -115,27 +112,37 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
-      <div className="w-full max-w-sm p-8 space-y-6 text-center rounded-lg shadow-2xl bg-card">
+      <div className="w-full max-w-sm p-8 space-y-6 text-center rounded-lg border bg-card">
         <div className="flex justify-center">
-             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                <Bot className="w-8 h-8 text-primary-foreground" />
-              </div>
+            <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                 <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+            </div>
         </div>
         <h1 className="text-2xl font-bold">Welcome to MyDataGPT</h1>
         <p className="text-muted-foreground">
-          {authMethod === 'face' && 'Authenticate to access your secure vault.'}
-          {authMethod === 'pin' && 'Enter your secure PIN.'}
-          {authMethod === 'phrase' && 'Enter your secret passphrase.'}
+          Choose your authentication method to access your secure vault.
         </p>
 
         <div className="pt-2">
             {renderAuthMethod()}
         </div>
         
-        <div className="flex justify-center gap-4 pt-4">
-            <Button variant="ghost" size="sm" onClick={() => setAuthMethod('face')} className={authMethod === 'face' ? 'text-primary' : ''}>Face ID</Button>
-            <Button variant="ghost" size="sm" onClick={() => setAuthMethod('pin')} className={authMethod === 'pin' ? 'text-primary' : ''}>PIN</Button>
-            <Button variant="ghost" size="sm" onClick={() => setAuthMethod('phrase')} className={authMethod === 'phrase' ? 'text-primary' : ''}>Phrase</Button>
+        <div className="flex justify-center gap-2 pt-4">
+            <Button variant="ghost" size="sm" onClick={() => setAuthMethod('face')} className={authMethod === 'face' ? 'bg-muted' : ''}>Face</Button>
+            <Button variant="ghost" size="sm" onClick={() => setAuthMethod('pin')} className={authMethod === 'pin' ? 'bg-muted' : ''}>PIN</Button>
+            <Button variant="ghost" size="sm" onClick={() => setAuthMethod('phrase')} className={authMethod === 'phrase' ? 'bg-muted' : ''}>Phrase</Button>
         </div>
       </div>
     </div>
