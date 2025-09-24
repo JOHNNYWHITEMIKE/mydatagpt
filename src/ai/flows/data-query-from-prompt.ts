@@ -153,18 +153,30 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     const llmResponse = await ai.generate({
         prompt: prompt.compile({input}),
         model: 'googleai/gemini-pro',
-        tools: [terminalTool]
+        tools: [terminalTool],
+        toolChoice: 'auto',
     });
     
     const toolRequest = llmResponse.toolRequest();
-    // Check if the model is trying to use the terminalTool.
-    // The prompt instructs it to only do this in "MyDataGPT" mode.
-    if (toolRequest?.tool === 'terminalTool' && typeof toolRequest.input.command === 'string') {
-        const toolOutput = await terminalTool({ command: toolRequest.input.command });
-        return { relevantData: toolOutput };
+    
+    // If the model wants to call a tool, execute it.
+    if (toolRequest) {
+      const toolResponse = await ll.invoke(toolRequest);
+      
+      const followUpResponse = await ai.generate({
+        prompt: prompt.compile({input}),
+        model: 'googleai/gemini-pro',
+        tools: [terminalTool],
+        history: [
+          llmResponse.message,
+          toolResponse.message
+        ]
+      });
+
+      return { relevantData: followUpResponse.text! };
     }
     
-    // Default to conversational response if no tool is called
+    // If the model just returned text, send that back.
     if (llmResponse.text) {
          return {
             relevantData: llmResponse.text,
@@ -177,3 +189,5 @@ const dataQueryFromPromptFlow = ai.defineFlow(
     };
   }
 );
+
+    
