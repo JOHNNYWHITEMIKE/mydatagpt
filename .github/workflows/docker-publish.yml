@@ -31,5 +31,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: user/app:latest # Replace with your Docker Hub username/repo
+          secrets: |
+            "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
