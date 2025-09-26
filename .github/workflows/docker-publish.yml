@@ -30,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: user/app:latest # Replace with your Docker Hub username/repo
+          tags: mastenmind/mydatagpt:latest # Replace with your Docker Hub username/repo
           secrets: |
             "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
           cache-from: type=gha
