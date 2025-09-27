@@ -48,8 +48,23 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            export GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-            cd /home/${{ secrets.VPS_USERNAME }}/app
+            cd /home/${{ secrets.VPS_USERNAME }}
+            mkdir -p app
+            cd app
+            
+            echo "version: '3.8'
+            services:
+              mydatagpt:
+                image: mastenmind/mydatagpt_mia:latest
+                restart: always
+                ports:
+                  - '3000:3000'
+                environment:
+                  - GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            " > docker-compose.yml
+
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+
             docker-compose pull
             docker-compose up -d --remove-orphans
             echo "Deployment successful!"
