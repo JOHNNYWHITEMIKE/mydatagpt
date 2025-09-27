@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MyDataGPT</string>
+    <string name="title_activity_main">MyDataGPT</string>
+    <string name="package_name">com.mydatagpt.app</string>
+    <string name="custom_url_scheme">com.mydatagpt.app</string>
+</resources>
