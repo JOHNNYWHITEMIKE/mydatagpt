@@ -1,4 +1,4 @@
-name: Docker Publish
+name: Docker Publish and Deploy
 
 on:
   push:
@@ -35,3 +35,20 @@ jobs:
             "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  
+  deploy:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            export GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            cd /home/${{ secrets.VPS_USERNAME }}/app
+            docker-compose pull
+            docker-compose up -d --remove-orphans
+            echo "Deployment successful!"
