@@ -11,7 +11,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "ionic:build": "npm run build",
-    "ionic:serve": "npx cap run android --livereload"
+    "ionic:serve": "npx cap run android --livereload --server-url=http://localhost:3000"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.0",
