@@ -2,9 +2,6 @@ import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 
-// This is required for static export.
-export const dynamic = 'force-static';
-
 export const size = {
   width: 32,
   height: 32,
