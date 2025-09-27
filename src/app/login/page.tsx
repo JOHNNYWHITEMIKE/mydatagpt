@@ -54,7 +54,7 @@ export default function LoginPage() {
                  <BotIcon />
             </div>
         </div>
-        <h1 className="text-2xl font-bold">Welcome to ChatGPT</h1>
+        <h1 className="text-2xl font-bold">Welcome to MyDataGPT</h1>
         <p className="text-muted-foreground">
           Enter your PIN to access your secure vault.
         </p>

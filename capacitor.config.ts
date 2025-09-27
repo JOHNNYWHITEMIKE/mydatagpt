@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'MyDataGPT',
   webDir: '.next',
   server: {
-    url: 'https://mydatagpt.example.com',
+    // Should be changed to the production URL when deploying
+    url: 'http://localhost:3000',
     cleartext: true,
   },
 };
