@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "ionic:build": "npm run build",
+    "ionic:build": "npm run build && npx cap copy",
     "ionic:serve": "npx cap run android --livereload"
   },
   "dependencies": {

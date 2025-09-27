@@ -112,6 +112,16 @@ const dataQueryFromPromptFlow = ai.defineFlow(
         tools: [terminalTool],
     });
     
+    const toolResponse = llmResponse.toolRequest?.toolResponse;
+    if (toolResponse) {
+        // If a tool was called, we assume its output is the relevant data.
+        // This is a simplification; a more complex agent might need to process the tool output further.
+        const toolOutput = toolResponse.parts[0].toolResponse.output;
+        return {
+            relevantData: typeof toolOutput === 'string' ? toolOutput : JSON.stringify(toolOutput),
+        };
+    }
+
     if (llmResponse.text) {
          return {
             relevantData: llmResponse.text,
