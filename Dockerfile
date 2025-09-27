@@ -1,43 +1,44 @@
-# Dockerfile for Next.js app with standalone output
+# Dockerfile
 
-# 1. Base Image
-FROM node:20-alpine AS base
+# 1. Builder stage
+FROM node:20-alpine AS builder
+# Set working directory
 WORKDIR /app
-
-# 2. Install Dependencies
-FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm install --frozen-lockfile
-
-# 3. Build the Application
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copy package.json and package-lock.json
+COPY package*.json ./
+# Install dependencies
+RUN npm install
+# Copy the rest of the application
 COPY . .
-# Set build-time secrets
+
+# Set build-time arguments for secrets
 ARG GEMINI_API_KEY
 ENV GEMINI_API_KEY=${GEMINI_API_KEY}
+
+# Build the Next.js app
 RUN npm run build
 
-# 4. Production Image
+# 2. Runner stage
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+# Uncomment the following line in case you want to disable telemetry during runtime.
+# ENV NEXT_TELEMETRY_DISABLED 1
 
-# Add a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy standalone output
 COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
-ENV PORT 3000
 
-# The server.js file from the standalone output is the entrypoint
+ENV PORT=3000
+
+# server.js is created by next build with output: standalone
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]
