@@ -1,20 +1,26 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs, ... }: {
+  # Which nixpkgs channel to use.
+  channel = "stable-23.11"; # Or "unstable"
 
-pkgs.mkShell {
-  buildInputs = with pkgs; [
-    nodejs-20_x
-    openssl
+  # Used by `nix-shell`
+  packages = [
+    pkgs.nodejs-20_x
+    pkgs.nodePackages.npm
+    pkgs.docker
   ];
 
-  shellHook = ''
-    export NG_CLI_ANALYTICS=ci
-    export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-    export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-
-    if [ -f "package-lock.json" ]; then
-      npm ci
-    else
-      npm i
-    fi
-  '';
+  #
+  # Sets environment variables in the workspace
+  env = {
+    # Add environment variables here
+  };
+  # This adds a file watcher to startup the firebase emulators. The emulators will only start if
+  # a firebase.json file is detected in the workspace.
+  # services.firebase = {
+  #   enable = true;
+  #   # autoStart = false; # Disables auto-starting the emulators
+  # };
+  #
+  # To start and stop the emulators manually, run `firebase emulators:start` and `emulators:stop`
+  # in a Terminal.
 }
