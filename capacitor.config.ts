@@ -4,7 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.mydatagpt.app',
   appName: 'MyDataGPT',
   webDir: '.next',
-  bundledWebRuntime: false,
+  server: {
+    url: 'https://mydatagpt.example.com',
+    cleartext: true,
+  },
 };
 
 export default config;
