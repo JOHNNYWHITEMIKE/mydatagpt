@@ -1,35 +1,26 @@
-# Dockerfile
-
-# 1. Builder stage
-FROM node:20-alpine AS builder
-# Set working directory
+# 1. Installer dependencies
+FROM node:20-slim AS deps
 WORKDIR /app
-# Copy package.json and package-lock.json
-COPY package*.json ./
-# Install dependencies
-RUN npm install
-# Copy the rest of the application
+COPY package.json pnpm-lock.yaml* ./
+RUN npm install -g pnpm
+RUN pnpm install --frozen-lockfile
+
+# 2. Build the app
+FROM node:20-slim AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm install -g pnpm
+RUN pnpm run build
 
-# Set build-time arguments for secrets
-ARG GEMINI_API_KEY
-ENV GEMINI_API_KEY=${GEMINI_API_KEY}
-
-# Build the Next.js app
-RUN npm run build
-
-# 2. Runner stage
-FROM node:20-alpine AS runner
+# 3. Run the app
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED 1
 
 COPY --from=builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -39,6 +30,4 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-# server.js is created by next build with output: standalone
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]
