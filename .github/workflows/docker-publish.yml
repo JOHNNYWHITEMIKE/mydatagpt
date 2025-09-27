@@ -30,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: mastenmind/mydatagp_mia:latest
+          tags: johnnywhitemike/mia:latest
           secrets: |
             "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
           cache-from: type=gha
