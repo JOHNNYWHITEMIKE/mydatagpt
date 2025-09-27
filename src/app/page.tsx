@@ -11,6 +11,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // In a static export, localStorage is only available on the client.
     const authStatus = localStorage.getItem("isAuthenticated");
     if (authStatus === "true") {
       setIsAuthenticated(true);
