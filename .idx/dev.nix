@@ -15,8 +15,8 @@
   # a firebase.json file is written into the user's directory
   services.firebase.emulators = {
     # Disabling because we are using prod backends right now
-    detect = false;
-    projectId = "demo-app";
+    detect = true;
+    projectId = "mia";
     services = ["auth" "firestore"];
   };
   idx = {
