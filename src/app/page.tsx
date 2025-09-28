@@ -16,7 +16,7 @@ export default function Home() {
     if (authStatus === "true") {
       setIsAuthenticated(true);
     } else {
-      router.replace("/login");
+      router.replace("/landing");
     }
     setIsLoading(false);
   }, [router]);
