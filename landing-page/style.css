@@ -1,0 +1,134 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #262A30;
+    color: #fff;
+    margin: 0;
+    line-height: 1.6;
+}
+
+a {
+    color: #59A5F4;
+    text-decoration: none;
+}
+
+header {
+    background: rgba(38, 42, 48, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
+
+.hero {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: linear-gradient(135deg, #262A30, #3a414d);
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.cta-button {
+    background-color: #59A5F4;
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #4a8dcf;
+}
+
+section {
+    padding: 4rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.feature-item {
+    background: #3a414d;
+    padding: 2rem;
+    border-radius: 10px;
+    border-left: 5px solid #B150F1;
+}
+
+.feature-item h3 {
+    color: #B150F1;
+}
+
+#commands .code-block {
+    background: #1e2229;
+    padding: 2rem;
+    border-radius: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    border: 1px solid #444;
+}
+
+#download {
+    text-align: center;
+}
+
+.store-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.store-button img {
+    height: 60px;
+}
+
+footer {
+    text-align: center;
+    padding: 2rem;
+    background: #1e2229;
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        display: none; /* Simple responsive behavior */
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+}

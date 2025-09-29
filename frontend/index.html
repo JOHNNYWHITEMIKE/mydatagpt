@@ -1,12 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MyDataGPT</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDataGPT</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>Welcome to MyDataGPT</h1>
-  <p>Our mobile app is coming soon!</p>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>MyDataGPT</h1>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be appended here -->
+            <div class="message received">
+                <div class="message-content">
+                    <p>Hello! How can I help you today?</p>
+                </div>
+            </div>
+        </div>
+        <div class="chat-input-container">
+            <form id="chat-form" class="chat-form">
+                <input type="text" id="message-input" placeholder="Type your message here..." autocomplete="off">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>

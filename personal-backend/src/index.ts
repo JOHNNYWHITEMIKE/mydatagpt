@@ -15,10 +15,16 @@ app.get('/', (req, res) => {
 });
 
 app.get('/personal/meta', firebaseAuth, (req, res) => {
+  if (!req.user) {
+    return res.status(401).send({ error: 'Unauthorized' });
+  }
   res.send({ message: `Hello ${req.user.email}`});
 });
 
 app.post('/personal/upload', firebaseAuth, upload.single('file'), async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send({ error: 'Unauthorized' });
+  }
   if (!req.file) {
     return res.status(400).send({ error: 'No file uploaded' });
   }
