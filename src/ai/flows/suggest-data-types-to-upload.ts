@@ -1,18 +1,6 @@
 'use server';
 
-/**
- * @fileOverview Suggests data types to upload to a new user.
- *
- * This flow uses an LLM to suggest data types to upload based on what the
- * app knows about the user.
- *
- * @interface SuggestDataTypesToUploadInput - The input to the suggestDataTypesToUpload function.
- * @interface SuggestDataTypesToUploadOutput - The output of the suggestDataTypesToUpload function.
- * @function suggestDataTypesToUpload - The function that suggests data types to upload.
- */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const SuggestDataTypesToUploadInputSchema = z.object({
   knownInformation: z
@@ -39,31 +27,21 @@ export type SuggestDataTypesToUploadOutput = z.infer<
 export async function suggestDataTypesToUpload(
   input: SuggestDataTypesToUploadInput
 ): Promise<SuggestDataTypesToUploadOutput> {
-  return suggestDataTypesToUploadFlow(input);
+    const response = await fetch('http://localhost:80/chatgpt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+        return {
+            suggestedDataTypes: 'Contacts, Photos, Documents',
+        };
+    }
+
+    const result = await response.json();
+    return result;
+
 }
-
-const prompt = ai.definePrompt({
-  name: 'suggestDataTypesToUploadPrompt',
-  input: {schema: SuggestDataTypesToUploadInputSchema},
-  output: {schema: SuggestDataTypesToUploadOutputSchema},
-  prompt: `You are an AI assistant that suggests data types to upload to a new user of a secure data storage app.
-
-  Based on the information you have about the user, suggest data types that would be useful for them to upload.
-
-  Known information about the user: {{{knownInformation}}}
-
-  Suggested data types (comma-separated):
-  `,
-});
-
-const suggestDataTypesToUploadFlow = ai.defineFlow(
-  {
-    name: 'suggestDataTypesToUploadFlow',
-    inputSchema: SuggestDataTypesToUploadInputSchema,
-    outputSchema: SuggestDataTypesToUploadOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);

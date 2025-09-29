@@ -7,6 +7,7 @@
     pkgs.nodejs_20
     pkgs.zulu
     pkgs.docker
+    pkgs.openssh
   ];
 
   env = {
