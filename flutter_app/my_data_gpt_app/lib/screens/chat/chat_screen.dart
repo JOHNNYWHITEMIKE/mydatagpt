@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
@@ -17,16 +19,16 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> _authenticateWithBiometrics() async {
+  Future<void> _authenticateWithBiometrics(BuildContext context) async {
     // TODO: Implement biometric authentication
-    print('Attempting to authenticate with biometrics...');
+    // print('Attempting to authenticate with biometrics...');
     await Future.delayed(const Duration(seconds: 1));
-    print('Biometric authentication successful!');
+    // print('Biometric authentication successful!');
   }
 
   Widget _buildTextComposer() {
     return IconTheme(
-      data: IconThemeData(color: Theme.of(context).accentColor),
+      data: IconThemeData(color: Theme.of(context).colorScheme.secondary),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
@@ -35,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: TextField(
                 controller: _textController,
                 onSubmitted: _handleSubmitted,
-                decoration: InputDecoration.collapsed(
+                decoration: const InputDecoration.collapsed(
                   hintText: 'Send a message',
                 ),
               ),
@@ -67,7 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onChanged: (value) {
                   _isVaultModeEnabled.value = value;
                   if (value) {
-                    _authenticateWithBiometrics();
+                    _authenticateWithBiometrics(context);
                   }
                 },
               );

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633328054321",
+    "project_id": "mydatagpt-ee047",
+    "storage_bucket": "mydatagpt-ee047.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633328054321:android:eceb847266d11a1e9d6510",
+        "android_client_info": {
+          "package_name": "com.mydatagpt.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATJM0p6HrtXzmbKu43KIRxLJkyPp4JSHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

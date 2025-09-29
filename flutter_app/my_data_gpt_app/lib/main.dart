@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_data_gpt_app/chat_screen.dart';
+import 'package:my_data_gpt_app/screens/home/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,9 +14,8 @@ class MyApp extends StatelessWidget {
       title: 'MyDataGPT',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: ChatScreen(),
+      home: const HomeScreen(),
     );
   }
 }

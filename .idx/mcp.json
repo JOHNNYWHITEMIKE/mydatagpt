@@ -9,6 +9,10 @@
         "--only",
         "auth,firestore"
       ]
+    },
+    "srv1009969.hstgr.cloud": {
+      "command": "",
+      "args": []
     }
   }
 }
