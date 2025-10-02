@@ -115,9 +115,23 @@ After updating DNS records:
 
 ## Verification Steps
 
-After updating DNS (wait 5-15 minutes for propagation), verify the changes:
+After updating DNS (wait 5-15 minutes for propagation), verify the changes.
 
-### 1. Check DNS Resolution
+### Automated Verification (Recommended)
+
+Use the provided verification script for comprehensive checks:
+
+```bash
+./scripts/verify-dns.sh
+```
+
+This script automatically checks DNS resolution, server responses, and ACME challenge accessibility. See [scripts/README.md](../scripts/README.md) for details.
+
+### Manual Verification
+
+Alternatively, manually verify each component:
+
+#### 1. Check DNS Resolution
 
 From your local machine or VPS, run:
 
@@ -134,7 +148,7 @@ dig +short api.mydatagpt.cloud
 
 Expected output: All should return your VPS IP address (VPS_IP).
 
-### 2. Verify HTTP Response
+#### 2. Verify HTTP Response
 
 ```bash
 # Check if requests reach your VPS
@@ -146,7 +160,7 @@ curl -I http://mydatagpt.cloud | grep -i server
 
 Expected: You should see `Server: nginx` in the response headers, not `Server: LiteSpeed`.
 
-### 3. Test ACME Challenge Access
+#### 3. Test ACME Challenge Access
 
 If you have a test file in the ACME challenge directory:
 
@@ -156,7 +170,7 @@ curl http://mydatagpt.cloud/.well-known/acme-challenge/test
 
 This should reach your VPS and return the test file content.
 
-### 4. Run Certbot
+#### 4. Run Certbot
 
 Once DNS is verified, request or renew SSL certificates:
 

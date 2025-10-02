@@ -29,6 +29,15 @@ Quick reference checklist for deploying MyDataGPT to production.
 
 ### Verification Commands
 
+**Automated (Recommended):**
+
+```bash
+# Run the comprehensive verification script
+./scripts/verify-dns.sh
+```
+
+**Manual:**
+
 ```bash
 # Wait 5-15 minutes, then verify:
 dig +short mydatagpt.cloud        # Should show VPS_IP
