@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_data_gpt_app/screens/vault/vault_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -10,21 +11,21 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final List<String> _messages = [];
   final TextEditingController _textController = TextEditingController();
-  final ValueNotifier<bool> _isVaultModeEnabled = ValueNotifier(false);
 
   void _handleSubmitted(String text) {
     _textController.clear();
+    if (text.trim().toLowerCase() == 'mydatagpt') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const VaultScreen()),
+      );
+      return;
+    }
     setState(() {
       _messages.insert(0, text);
     });
   }
 
-  Future<void> _authenticateWithBiometrics(BuildContext context) async {
-    // TODO: Implement biometric authentication
-    // print('Attempting to authenticate with biometrics...');
-    await Future.delayed(const Duration(seconds: 1));
-    // print('Biometric authentication successful!');
-  }
 
   Widget _buildTextComposer() {
     return IconTheme(
@@ -60,22 +61,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MyDataGPT'),
-        actions: [
-          ValueListenableBuilder<bool>(
-            valueListenable: _isVaultModeEnabled,
-            builder: (context, isEnabled, child) {
-              return Switch(
-                value: isEnabled,
-                onChanged: (value) {
-                  _isVaultModeEnabled.value = value;
-                  if (value) {
-                    _authenticateWithBiometrics(context);
-                  }
-                },
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: <Widget>[

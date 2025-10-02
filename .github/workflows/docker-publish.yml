@@ -31,7 +31,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: mastenmind/mydatagpt_mia:latest
+          tags: |
+            mastenmind/mydatagpt_mia:latest
+            mastenmind/mydatagpt_mia:${{ github.sha }}
           secrets: |
             "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
           cache-from: type=gha
@@ -46,12 +48,12 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
             cd /home/${{ secrets.VPS_USERNAME }}
             mkdir -p app
             cd app
-            
             echo "version: '3.8'
             services:
               mydatagpt:
@@ -62,9 +64,11 @@ jobs:
                 environment:
                   - GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             " > docker-compose.yml
-
             echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
-            
-            docker-compose pull
-            docker-compose up -d --remove-orphans
+            if ! docker-compose pull; then
+              echo 'docker-compose pull failed'; exit 1;
+            fi
+            if ! docker-compose up -d --remove-orphans; then
+              echo 'docker-compose up failed'; exit 1;
+            fi
             echo "Deployment successful!"
