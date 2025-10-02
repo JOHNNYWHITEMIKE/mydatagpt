@@ -8,9 +8,11 @@ To get started with development, take a look at `src/app/page.tsx`.
 
 ## Documentation
 
+- **[Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete guide to all documentation
 - **[Blueprint](docs/blueprint.md)** - Architecture and feature overview
 - **[DNS Setup](docs/DNS_SETUP.md)** - Complete guide for configuring DNS and SSL certificates
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment guide
+- **[SSL Troubleshooting](docs/TROUBLESHOOTING_SSL.md)** - Detailed SSL/TLS troubleshooting guide
 
 ## Deployment
 
